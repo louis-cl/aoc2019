@@ -88,8 +88,7 @@ def program(codes, read, pointer):
                 result[c] = 0
             i += 4
         else:
-            print("something went wrong ", opcode)
-            return False, -1, i
+            raise Exception("something went wrong with {}".format(opcode))
         
 def main(codes):
     perms = list(itertools.permutations(range(5, 10)))

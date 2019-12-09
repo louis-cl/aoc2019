@@ -1,4 +1,5 @@
 from collections import defaultdict
+from functools import partial
 
 def opcode(code):
     op = code % 100
@@ -12,46 +13,55 @@ def opcode(code):
 
 def program(memory):
     i = 0
-    relative = 0
+    mem_offset = 0
 
     def mem(pos, mode):
         if mode == 1: return pos
-        elif mode == 2: return memory[pos+relative]
+        elif mode == 2: return memory[pos+mem_offset]
         elif mode == 0: return memory[pos]
         else: raise Exception("PROBLEM mode")
 
     def write(pos, mode):
-        if mode == 2: return pos+relative
+        if mode == 2: return pos+mem_offset
         else: return pos
+
+    def readWithMode(mem, addr, off=0, mode=0):
+        if mode == 0: return mem[addr]
+        elif mode == 1: return addr
+        elif mode == 2: return mem[addr+off]
+        else: raise Exception("wrong read" + [mem,off,mode,addr])
+
+    def unpack(arr, start, size):
+        return arr[start,start+size]
 
     while True:
         (op, [im1, im2, im3]) = opcode(memory[i])
         if op == 99:
             break
-        elif op == 1:
+        elif op == 1: # ADD a b s
             a = memory[i+1]
             b = memory[i+2]
             d = memory[i+3]
             memory[write(d, im3)] = mem(a, im1) + mem(b, im2)
             i += 4
-        elif op == 2:
+        elif op == 2: # MUL a b s
             a = memory[i+1]
             b = memory[i+2]
             d = memory[i+3]
             memory[write(d, im3)] = mem(a, im1) * mem(b, im2)
             i += 4
-        elif op == 3:
+        elif op == 3: # IN s
             a = memory[i+1]
             # input
             print("INPUT 2")
-            memory[write(a, im1)] = 2
+            memory[write(a, im1)] = 1
             i += 2
-        elif op == 4:
+        elif op == 4: # OUT s
             a = memory[i+1]
             res = mem(a, im1)
             print(res)
             i += 2
-        elif op == 5:
+        elif op == 5: # NZ a j
             a = memory[i+1]
             b = memory[i+2]
             v = mem(a, im1)
@@ -59,7 +69,7 @@ def program(memory):
                 i = mem(b, im2)
             else:
                 i += 3
-        elif op == 6:
+        elif op == 6: # Z a j
             a = memory[i+1]
             b = memory[i+2]
             v = mem(a, im1)
@@ -67,7 +77,7 @@ def program(memory):
                 i = mem(b, im2)
             else:
                 i += 3
-        elif op == 7:
+        elif op == 7: # LT a b s
             a = memory[i+1]
             b = memory[i+2]
             c = memory[i+3]
@@ -78,7 +88,7 @@ def program(memory):
             else:
                 memory[write(c,im3)] = 0
             i += 4
-        elif op == 8:
+        elif op == 8: # EQ a b s
             a = memory[i+1]
             b = memory[i+2]
             c = memory[i+3]
@@ -89,9 +99,9 @@ def program(memory):
             else:
                 memory[write(c, im3)] = 0
             i += 4
-        elif op == 9:
+        elif op == 9: # OFF a
             a = memory[i+1]
-            relative += mem(a, im1)
+            mem_offset += mem(a, im1)
             i += 2
         else:
             print("something went wrong ", op)

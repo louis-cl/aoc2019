@@ -30,7 +30,7 @@ def writeWithMode(mem, addr, value, off=0, mode=0):
         mem[addr+off] = value
     else: raise Exception("wrong write" + [addr, value, off, mode])
 
-def program(memory, ptr=0, mem_offset=0):
+def program(memory, out, ptr=0, mem_offset=0):
     while True:
         (op, [im1, im2, im3]) = opcode(memory[ptr])
         args = lambda n: unpack(memory, ptr+1, n)
@@ -56,7 +56,7 @@ def program(memory, ptr=0, mem_offset=0):
         elif op == 4: # OUT s
             a = args(1)
             res = read(a, im1)
-            yield res
+            out.send(res)
             ptr += 2
         elif op == 5: # NZ a j
             a, j = args(2)
@@ -91,20 +91,30 @@ def program(memory, ptr=0, mem_offset=0):
         else:
             raise Exception("something went wrong " + op)
         
+
+def printer():
+    while True:
+        n = (yield)
+        print(n, end=',')
+
 def main(codes):
     # codes to dict
     memory = {i:v for i,v in enumerate(codes)}
     # print(list(program(memory, deque([1]))))
-    p = program(memory)
-    p.send(None) # start
-    output = p.send(2)    # read
-    print(output)
+    pp = printer()
+    pp.send(None)
+
+    pro = program(memory, pp)
+    pro.send(None)
+    print(pro.send(1))
+    # pro.send(1)
+    # output = p.send(2) # read
 
 if __name__ == '__main__':
     with open('day9/input.txt', 'r') as f:
         lines = f.readlines()
 
-    # lines[0] = "104,1125899906842624,99"
+    # lines[0] = "109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99"
     codes = lines[0].split(',')
     codes = list(map(int, codes))
     main(codes)

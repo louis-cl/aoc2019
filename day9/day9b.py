@@ -1,26 +1,23 @@
 from collections import defaultdict
 
-def op(code):
-    opcode = code % 100
+def opcode(code):
+    op = code % 100
     code = code // 100
     immediate1 = code % 10
     code = code // 10
     immediate2 = code % 10
     code = code // 10
     immediate3 = code % 10
-    return (opcode, immediate1, immediate2, immediate3)
+    return (op, [immediate1, immediate2, immediate3])
 
-def program(codes):
-    result = codes
-    
-    n = len(result)
+def program(memory):
     i = 0
     relative = 0
 
     def mem(pos, mode):
         if mode == 1: return pos
-        elif mode == 2: return result[pos+relative]
-        elif mode == 0: return result[pos]
+        elif mode == 2: return memory[pos+relative]
+        elif mode == 0: return memory[pos]
         else: raise Exception("PROBLEM mode")
 
     def write(pos, mode):
@@ -28,76 +25,76 @@ def program(codes):
         else: return pos
 
     while True:
-        (opcode, im1, im2, im3) = op(result[i])
-        if opcode == 99:
+        (op, [im1, im2, im3]) = opcode(memory[i])
+        if op == 99:
             break
-        elif opcode == 1:
-            a = result[i+1]
-            b = result[i+2]
-            d = result[i+3]
-            result[write(d, im3)] = mem(a, im1) + mem(b, im2)
+        elif op == 1:
+            a = memory[i+1]
+            b = memory[i+2]
+            d = memory[i+3]
+            memory[write(d, im3)] = mem(a, im1) + mem(b, im2)
             i += 4
-        elif opcode == 2:
-            a = result[i+1]
-            b = result[i+2]
-            d = result[i+3]
-            result[write(d, im3)] = mem(a, im1) * mem(b, im2)
+        elif op == 2:
+            a = memory[i+1]
+            b = memory[i+2]
+            d = memory[i+3]
+            memory[write(d, im3)] = mem(a, im1) * mem(b, im2)
             i += 4
-        elif opcode == 3:
-            a = result[i+1]
+        elif op == 3:
+            a = memory[i+1]
             # input
             print("INPUT 2")
-            result[write(a, im1)] = 2
+            memory[write(a, im1)] = 2
             i += 2
-        elif opcode == 4:
-            a = result[i+1]
+        elif op == 4:
+            a = memory[i+1]
             res = mem(a, im1)
             print(res)
             i += 2
-        elif opcode == 5:
-            a = result[i+1]
-            b = result[i+2]
+        elif op == 5:
+            a = memory[i+1]
+            b = memory[i+2]
             v = mem(a, im1)
             if v != 0:
                 i = mem(b, im2)
             else:
                 i += 3
-        elif opcode == 6:
-            a = result[i+1]
-            b = result[i+2]
+        elif op == 6:
+            a = memory[i+1]
+            b = memory[i+2]
             v = mem(a, im1)
             if v == 0:
                 i = mem(b, im2)
             else:
                 i += 3
-        elif opcode == 7:
-            a = result[i+1]
-            b = result[i+2]
-            c = result[i+3]
+        elif op == 7:
+            a = memory[i+1]
+            b = memory[i+2]
+            c = memory[i+3]
             v1 = mem(a, im1)
             v2 = mem(b, im2)
             if v1 < v2:
-                result[write(c, im3)] = 1
+                memory[write(c, im3)] = 1
             else:
-                result[write(c,im3)] = 0
+                memory[write(c,im3)] = 0
             i += 4
-        elif opcode == 8:
-            a = result[i+1]
-            b = result[i+2]
-            c = result[i+3]
+        elif op == 8:
+            a = memory[i+1]
+            b = memory[i+2]
+            c = memory[i+3]
             v1 = mem(a, im1)
             v2 = mem(b, im2)
             if v1 == v2:
-                result[write(c, im3)] = 1
+                memory[write(c, im3)] = 1
             else:
-                result[write(c, im3)] = 0
+                memory[write(c, im3)] = 0
             i += 4
-        elif opcode == 9:
-            a = result[i+1]
+        elif op == 9:
+            a = memory[i+1]
             relative += mem(a, im1)
             i += 2
         else:
-            print("something went wrong ", opcode)
+            print("something went wrong ", op)
             break;
         
 def main(codes):

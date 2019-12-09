@@ -15,41 +15,35 @@ def opcode(code):
     immediate3 = code % 10
     return (op, [immediate1, immediate2, immediate3])
 
+def readWithMode(mem, addr, off=0, mode=0):
+    if mode == 0: return mem[addr]
+    elif mode == 1: return addr
+    elif mode == 2: return mem[addr+off]
+    else: raise Exception("wrong read" + [off,mode,addr])
+
 def program(memory):
     i = 0
     mem_offset = 0
-
-    def mem(pos, mode):
-        if mode == 1: return pos
-        elif mode == 2: return memory[pos+mem_offset]
-        elif mode == 0: return memory[pos]
-        else: raise Exception("PROBLEM mode")
 
     def write(pos, mode):
         if mode == 2: return pos+mem_offset
         else: return pos
 
-    def readWithMode(mem, addr, off=0, mode=0):
-        if mode == 0: return mem[addr]
-        elif mode == 1: return addr
-        elif mode == 2: return mem[addr+off]
-        else: raise Exception("wrong read" + [mem,off,mode,addr])
-
-    
     args = partial(unpack, memory)
 
     while True:
         (op, [im1, im2, im3]) = opcode(memory[i])
         nargs = partial(args, i+1)
+        read = lambda x,y: readWithMode(memory, x, off=mem_offset, mode=y)
         if op == 99:
             break
         elif op == 1: # ADD a b s
             a, b, s = nargs(3)
-            memory[write(s, im3)] = mem(a, im1) + mem(b, im2)
+            memory[write(s, im3)] = read(a, im1) + read(b, im2)
             i += 4
         elif op == 2: # MUL a b s
             a, b, s = nargs(3)
-            memory[write(s, im3)] = mem(a, im1) * mem(b, im2)
+            memory[write(s, im3)] = read(a, im1) * read(b, im2)
             i += 4
         elif op == 3: # IN s
             a = nargs(1)
@@ -59,38 +53,38 @@ def program(memory):
             i += 2
         elif op == 4: # OUT s
             a = nargs(1)
-            res = mem(a, im1)
+            res = read(a, im1)
             print(res)
             i += 2
         elif op == 5: # NZ a j
             a, j = nargs(2)
-            v = mem(a, im1)
+            v = read(a, im1)
             if v != 0:
-                i = mem(j, im2)
+                i = read(j, im2)
             else:
                 i += 3
         elif op == 6: # Z a j
             a, j = nargs(2)
-            v = mem(a, im1)
+            v = read(a, im1)
             if v == 0:
-                i = mem(j, im2)
+                i = read(j, im2)
             else:
                 i += 3
         elif op == 7: # LT a b s
             a, b, s = nargs(3)
-            v1 = mem(a, im1)
-            v2 = mem(b, im2)
+            v1 = read(a, im1)
+            v2 = read(b, im2)
             memory[write(s, im3)] = 1 if v1 < v2 else 0
             i += 4
         elif op == 8: # EQ a b s
             a, b, s = nargs(3)
-            v1 = mem(a, im1)
-            v2 = mem(b, im2)
+            v1 = read(a, im1)
+            v2 = read(b, im2)
             memory[write(s, im3)] = 1 if v1 == v2 else 0
             i += 4
         elif op == 9: # OFF a
             a = nargs(1)
-            mem_offset += mem(a, im1)
+            mem_offset += read(a, im1)
             i += 2
         else:
             print("something went wrong ", op)

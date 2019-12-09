@@ -21,35 +21,40 @@ def readWithMode(mem, addr, off=0, mode=0):
     elif mode == 2: return mem[addr+off]
     else: raise Exception("wrong read" + [off,mode,addr])
 
+def writeWithMode(mem, addr, value, off=0, mode=0):
+    if mode == 0:
+        mem[addr] = value
+    elif mode == 2:
+        mem[addr+off] = value
+    else: raise Exception("wrong write" + [addr, value, off, mode])
+
 def program(memory):
     i = 0
     mem_offset = 0
-
-    def write(pos, mode):
-        if mode == 2: return pos+mem_offset
-        else: return pos
-
     args = partial(unpack, memory)
 
     while True:
         (op, [im1, im2, im3]) = opcode(memory[i])
         nargs = partial(args, i+1)
-        read = lambda x,y: readWithMode(memory, x, off=mem_offset, mode=y)
+        read = lambda addr,m: readWithMode(memory, addr, mem_offset, m)
+        write = lambda addr,m,v: writeWithMode(memory, addr, v, mem_offset, m)
         if op == 99:
             break
         elif op == 1: # ADD a b s
             a, b, s = nargs(3)
-            memory[write(s, im3)] = read(a, im1) + read(b, im2)
+            val = read(a, im1) + read(b, im2)
+            write(s, im3, val)
             i += 4
         elif op == 2: # MUL a b s
             a, b, s = nargs(3)
-            memory[write(s, im3)] = read(a, im1) * read(b, im2)
+            val = read(a, im1) * read(b, im2)
+            write(s, im3, val)
             i += 4
         elif op == 3: # IN s
             a = nargs(1)
             # input
             print("INPUT 2")
-            memory[write(a, im1)] = 1
+            write(a, im1, 1)
             i += 2
         elif op == 4: # OUT s
             a = nargs(1)
@@ -74,13 +79,13 @@ def program(memory):
             a, b, s = nargs(3)
             v1 = read(a, im1)
             v2 = read(b, im2)
-            memory[write(s, im3)] = 1 if v1 < v2 else 0
+            write(s, im3, 1 if v1 < v2 else 0)
             i += 4
         elif op == 8: # EQ a b s
             a, b, s = nargs(3)
             v1 = read(a, im1)
             v2 = read(b, im2)
-            memory[write(s, im3)] = 1 if v1 == v2 else 0
+            write(s, im3, 1 if v1 == v2 else 0)
             i += 4
         elif op == 9: # OFF a
             a = nargs(1)

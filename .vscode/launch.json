@@ -7,10 +7,9 @@
         {
             "type": "python",
             "request": "launch",
-            "name": "Debug",
-            "program": "${workspaceFolder}/day6/day6a.py",
+            "name": "Debug file",
+            "program": "${file}",
             "args": [],
-            "cwd": "${workspaceFolder}"
         }
     ]
 }

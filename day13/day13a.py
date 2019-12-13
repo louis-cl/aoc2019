@@ -13,9 +13,7 @@ def main(codes):
     tiles = {}
     try:
         while True:
-            x = next(p)
-            y = next(p)
-            tile_id = next(p)
+            x,y,tile_id = [next(p) for _ in range(3)]
             tiles[(x,y)] = tile_id
     except StopIteration:
         print("painted", len(tiles))

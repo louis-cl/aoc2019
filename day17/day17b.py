@@ -3,7 +3,7 @@ from collections import deque
 import math
 sys.path.append('..')
 from day9.day9b import program
-import re
+from day17.compress import regexp
 
 def draw(tiles):
     max_y = int(max(z.imag for z in tiles.keys()))
@@ -90,13 +90,10 @@ def main(codes):
     draw(mapa)
 
     pathStr =",".join(map(str, path)) + ","
-    result = re.match(r'^(.{1,21})\1*(.{1,21})(?:\1|\2)*(.{1,21})(?:\1|\2|\3)*$', pathStr)
+    
 
     # send main routine
-    methods = [result.group(i) for i in range(1,4)]
-    routine = pathStr
-    for m,k in zip(methods,"ABC"):
-        routine = routine.replace(m, k)
+    routine, methods = regexp(pathStr)
 
     # A = ['L', 10, 'L', 8, 'R', 12]
     # B = ['L', 8, 'L', 10, 'L', 6, 'L', 6]

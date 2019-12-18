@@ -4,19 +4,7 @@ import math
 sys.path.append('..')
 from day9.day9b import program
 from day17.compress import regexp
-
-def draw(tiles):
-    max_y = int(max(z.imag for z in tiles.keys()))
-    max_x = int(max(z.real for z in tiles.keys()))
-
-    for i in range(max_x+1):
-        for j in range(max_y+1):
-            if complex(i,j) in tiles:
-                print(tiles[complex(i,j)], end='')
-            else:
-                print(' ', end='')
-        print()
-
+from utils import draw
 
 def computePath(mapa, start, diri):
     # hardcoded starting conditions

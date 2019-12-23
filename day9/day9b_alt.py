@@ -50,13 +50,16 @@ def program(memory, out, ptr=0, mem_offset=0):
             ptr += 4
         elif op == 3: # IN s
             a = args(1)
-            inp = (yield) # input
+            inp = (yield 'input') # input
             write(a, im1, inp)
             ptr += 2
         elif op == 4: # OUT s
             a = args(1)
             res = read(a, im1)
-            out.send(res)
+            if out:
+                out.send(res)
+            else:
+                yield res
             ptr += 2
         elif op == 5: # NZ a j
             a, j = args(2)
